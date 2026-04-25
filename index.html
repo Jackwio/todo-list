@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban To Do List</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Local-first Task Board</p>
+        <h1>To Do List Kanban Board</h1>
+        <p class="hero-copy">拖移卡片切換狀態，所有資料都儲存在瀏覽器的 <code>localStorage</code>。</p>
+      </div>
+
+      <form class="task-form" id="task-form">
+        <label class="field">
+          <span>任務標題</span>
+          <input id="task-title" name="title" type="text" maxlength="80" placeholder="例如：完成首頁切版" required>
+        </label>
+
+        <label class="field">
+          <span>任務內容</span>
+          <textarea id="task-description" name="description" rows="3" maxlength="240" placeholder="補充重點、截止時間或備註"></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button type="submit" class="primary-btn">新增任務</button>
+          <button type="button" class="ghost-btn" id="clear-storage">清除全部資料</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="board" id="board">
+      <article class="column" data-status="todo">
+        <header class="column-header todo">
+          <div>
+            <p class="column-kicker">Queue</p>
+            <h2>To Do</h2>
+          </div>
+          <span class="count" data-count-for="todo">0</span>
+        </header>
+        <div class="dropzone" data-status="todo"></div>
+      </article>
+
+      <article class="column" data-status="doing">
+        <header class="column-header doing">
+          <div>
+            <p class="column-kicker">Focus</p>
+            <h2>Doing</h2>
+          </div>
+          <span class="count" data-count-for="doing">0</span>
+        </header>
+        <div class="dropzone" data-status="doing"></div>
+      </article>
+
+      <article class="column" data-status="done">
+        <header class="column-header done">
+          <div>
+            <p class="column-kicker">Delivered</p>
+            <h2>Done</h2>
+          </div>
+          <span class="count" data-count-for="done">0</span>
+        </header>
+        <div class="dropzone" data-status="done"></div>
+      </article>
+    </section>
+  </main>
+
+  <template id="task-card-template">
+    <article class="task-card" draggable="true">
+      <div class="task-card-body">
+        <h3 class="task-title"></h3>
+        <p class="task-description"></p>
+      </div>
+      <div class="task-card-footer">
+        <time class="task-time"></time>
+        <div class="task-actions">
+          <button type="button" class="icon-btn" data-action="edit" aria-label="編輯任務">編輯</button>
+          <button type="button" class="icon-btn danger" data-action="delete" aria-label="刪除任務">刪除</button>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
