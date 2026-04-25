@@ -30,7 +30,8 @@ form.addEventListener("submit", (event) => {
     title,
     description,
     status: "todo",
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    timeline: createTimeline("todo")
   });
 
   persistTasks();
@@ -76,7 +77,7 @@ dropzones.forEach((zone) => {
     }
 
     const [movedTask] = tasks.splice(sourceIndex, 1);
-    movedTask.status = targetStatus;
+    applyStatusChange(movedTask, targetStatus);
 
     const siblings = tasks.filter((task) => task.status === targetStatus);
     const insertAt = afterElement
@@ -156,12 +157,12 @@ function createTaskCard(task) {
   const card = fragment.querySelector(".task-card");
   const title = fragment.querySelector(".task-title");
   const description = fragment.querySelector(".task-description");
-  const time = fragment.querySelector(".task-time");
+  const timeline = fragment.querySelector(".task-timeline");
 
   card.dataset.taskId = task.id;
   title.textContent = task.title;
   description.textContent = task.description || "沒有補充內容";
-  time.textContent = formatDate(task.createdAt);
+  timeline.replaceChildren(...createTimelineNodes(task.timeline));
 
   card.addEventListener("dragstart", () => {
     draggedTaskId = task.id;
@@ -195,7 +196,8 @@ function loadTasks() {
         title: String(task.title ?? "").trim(),
         description: String(task.description ?? "").trim(),
         status: task.status,
-        createdAt: task.createdAt || new Date().toISOString()
+        createdAt: task.createdAt || new Date().toISOString(),
+        timeline: normalizeTimeline(task)
       }))
       .filter((task) => task.title);
   } catch {
@@ -214,21 +216,24 @@ function defaultTasks() {
       title: "規劃本週待辦",
       description: "先整理要完成的項目，再拖到 Doing。",
       status: "todo",
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      timeline: createTimeline("todo")
     },
     {
       id: crypto.randomUUID(),
       title: "開始處理最重要的任務",
       description: "拖曳卡片可以改變狀態與排序。",
       status: "doing",
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      timeline: createTimeline("doing")
     },
     {
       id: crypto.randomUUID(),
       title: "完成後移到 Done",
       description: "所有資料都會保留在目前瀏覽器。",
       status: "done",
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      timeline: createTimeline("done")
     }
   ];
 }
@@ -277,4 +282,66 @@ function findAbsoluteInsertIndex(status, positionInStatus) {
   }
 
   return tasks.length;
+}
+
+function createTimeline(status) {
+  const now = new Date().toISOString();
+  return {
+    startedAt: now,
+    doingAt: status === "doing" || status === "done" ? now : null,
+    doneAt: status === "done" ? now : null
+  };
+}
+
+function normalizeTimeline(task) {
+  const createdAt = task.createdAt || new Date().toISOString();
+  const existingTimeline = task.timeline && typeof task.timeline === "object" ? task.timeline : {};
+
+  return {
+    startedAt: existingTimeline.startedAt || task.startedAt || createdAt,
+    doingAt: existingTimeline.doingAt || task.doingAt || null,
+    doneAt: existingTimeline.doneAt || task.doneAt || null
+  };
+}
+
+function applyStatusChange(task, nextStatus) {
+  if (task.status === nextStatus) {
+    return;
+  }
+
+  task.status = nextStatus;
+  task.timeline = normalizeTimeline(task);
+
+  if (nextStatus === "doing" && !task.timeline.doingAt) {
+    task.timeline.doingAt = new Date().toISOString();
+  }
+
+  if (nextStatus === "done") {
+    if (!task.timeline.doneAt) {
+      task.timeline.doneAt = new Date().toISOString();
+    }
+  }
+}
+
+function createTimelineNodes(timeline) {
+  const entries = [
+    { label: "開始", value: timeline?.startedAt },
+    { label: "移到 Doing", value: timeline?.doingAt },
+    { label: "移到 Done", value: timeline?.doneAt }
+  ].filter((entry) => entry.value);
+
+  return entries.map((entry) => {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("time");
+
+    row.className = "task-timeline-item";
+    label.className = "task-timeline-label";
+    label.textContent = `${entry.label}:`;
+    value.dateTime = entry.value;
+    value.textContent = formatDate(entry.value);
+
+    row.append(label, value);
+    return row;
+  });
 }
