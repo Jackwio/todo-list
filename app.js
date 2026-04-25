@@ -210,32 +210,7 @@ function persistTasks() {
 }
 
 function defaultTasks() {
-  return [
-    {
-      id: crypto.randomUUID(),
-      title: "規劃本週待辦",
-      description: "先整理要完成的項目，再拖到 Doing。",
-      status: "todo",
-      createdAt: new Date().toISOString(),
-      timeline: createTimeline("todo")
-    },
-    {
-      id: crypto.randomUUID(),
-      title: "開始處理最重要的任務",
-      description: "拖曳卡片可以改變狀態與排序。",
-      status: "doing",
-      createdAt: new Date().toISOString(),
-      timeline: createTimeline("doing")
-    },
-    {
-      id: crypto.randomUUID(),
-      title: "完成後移到 Done",
-      description: "所有資料都會保留在目前瀏覽器。",
-      status: "done",
-      createdAt: new Date().toISOString(),
-      timeline: createTimeline("done")
-    }
-  ];
+  return [];
 }
 
 function formatDate(isoString) {
