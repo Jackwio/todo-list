@@ -1,5 +1,5 @@
 const STORAGE_KEY = "kanban-todo-list-v1";
-const STATUSES = ["todo", "doing", "done"];
+const STATUSES = ["todo", "doing", "review", "done"];
 
 const form = document.querySelector("#task-form");
 const titleInput = document.querySelector("#task-title");
@@ -263,7 +263,8 @@ function createTimeline(status) {
   const now = new Date().toISOString();
   return {
     startedAt: now,
-    doingAt: status === "doing" || status === "done" ? now : null,
+    doingAt: status === "doing" || status === "review" || status === "done" ? now : null,
+    reviewAt: status === "review" || status === "done" ? now : null,
     doneAt: status === "done" ? now : null
   };
 }
@@ -275,6 +276,7 @@ function normalizeTimeline(task) {
   return {
     startedAt: existingTimeline.startedAt || task.startedAt || createdAt,
     doingAt: existingTimeline.doingAt || task.doingAt || null,
+    reviewAt: existingTimeline.reviewAt || task.reviewAt || null,
     doneAt: existingTimeline.doneAt || task.doneAt || null
   };
 }
@@ -291,6 +293,10 @@ function applyStatusChange(task, nextStatus) {
     task.timeline.doingAt = new Date().toISOString();
   }
 
+  if (nextStatus === "review" && !task.timeline.reviewAt) {
+    task.timeline.reviewAt = new Date().toISOString();
+  }
+
   if (nextStatus === "done") {
     if (!task.timeline.doneAt) {
       task.timeline.doneAt = new Date().toISOString();
@@ -302,6 +308,7 @@ function createTimelineNodes(timeline) {
   const entries = [
     { label: "開始", value: timeline?.startedAt },
     { label: "移到 Doing", value: timeline?.doingAt },
+    { label: "移到 Review", value: timeline?.reviewAt },
     { label: "移到 Done", value: timeline?.doneAt }
   ].filter((entry) => entry.value);
 

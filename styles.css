@@ -9,6 +9,7 @@
   --shadow: 0 20px 45px rgba(68, 53, 34, 0.12);
   --todo: #ff8a5b;
   --doing: #2f6fed;
+  --review: #8b5cf6;
   --done: #2f9e73;
 }
 
@@ -176,7 +177,7 @@ textarea {
 
 .board {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -211,6 +212,7 @@ textarea {
 
 .column-header.todo .count { color: var(--todo); }
 .column-header.doing .count { color: var(--doing); }
+.column-header.review .count { color: var(--review); }
 .column-header.done .count { color: var(--done); }
 
 .dropzone {
