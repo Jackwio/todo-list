@@ -5,6 +5,9 @@ const form = document.querySelector("#task-form");
 const titleInput = document.querySelector("#task-title");
 const descriptionInput = document.querySelector("#task-description");
 const clearButton = document.querySelector("#clear-storage");
+const exportButton = document.querySelector("#export-storage");
+const importInput = document.querySelector("#import-storage");
+const storageStatus = document.querySelector("#storage-status");
 const template = document.querySelector("#task-card-template");
 const dropzones = [...document.querySelectorAll(".dropzone")];
 const countBadges = [...document.querySelectorAll("[data-count-for]")];
@@ -48,6 +51,55 @@ clearButton.addEventListener("click", () => {
   tasks = [];
   persistTasks();
   renderBoard();
+  showStorageStatus("已清除所有任務。");
+});
+
+exportButton.addEventListener("click", () => {
+  const payload = {
+    app: "kanban-todo-list",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    storageKey: STORAGE_KEY,
+    tasks
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = createExportFilename();
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+
+  showStorageStatus(`已匯出 ${tasks.length} 筆任務。`);
+});
+
+importInput.addEventListener("change", async () => {
+  const [file] = importInput.files;
+  if (!file) {
+    return;
+  }
+
+  try {
+    const importedTasks = parseImportedTasks(await file.text());
+
+    if (!window.confirm(`匯入會覆蓋目前 ${tasks.length} 筆任務，確定要匯入 ${importedTasks.length} 筆任務嗎？`)) {
+      return;
+    }
+
+    tasks = importedTasks;
+    persistTasks();
+    renderBoard();
+    showStorageStatus(`已匯入 ${tasks.length} 筆任務。`);
+  } catch (error) {
+    window.alert(error.message);
+    showStorageStatus("匯入失敗，請確認檔案是有效的 JSON。", true);
+  } finally {
+    importInput.value = "";
+  }
 });
 
 dropzones.forEach((zone) => {
@@ -189,17 +241,7 @@ function loadTasks() {
       return defaultTasks();
     }
 
-    return parsed
-      .filter((task) => task && typeof task === "object" && STATUSES.includes(task.status))
-      .map((task) => ({
-        id: String(task.id),
-        title: String(task.title ?? "").trim(),
-        description: String(task.description ?? "").trim(),
-        status: task.status,
-        createdAt: task.createdAt || new Date().toISOString(),
-        timeline: normalizeTimeline(task)
-      }))
-      .filter((task) => task.title);
+    return normalizeTasks(parsed);
   } catch {
     return defaultTasks();
   }
@@ -211,6 +253,60 @@ function persistTasks() {
 
 function defaultTasks() {
   return [];
+}
+
+function normalizeTasks(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((task) => task && typeof task === "object" && STATUSES.includes(task.status))
+    .map((task) => ({
+      id: String(task.id || crypto.randomUUID()),
+      title: String(task.title ?? "").trim(),
+      description: String(task.description ?? "").trim(),
+      status: task.status,
+      createdAt: task.createdAt || new Date().toISOString(),
+      timeline: normalizeTimeline(task)
+    }))
+    .filter((task) => task.title);
+}
+
+function parseImportedTasks(rawJson) {
+  let parsed;
+
+  try {
+    parsed = JSON.parse(rawJson);
+  } catch {
+    throw new Error("匯入失敗：檔案內容不是有效的 JSON。");
+  }
+
+  const candidateTasks = Array.isArray(parsed)
+    ? parsed
+    : parsed?.tasks || parsed?.[STORAGE_KEY];
+
+  if (!Array.isArray(candidateTasks)) {
+    throw new Error("匯入失敗：JSON 需要包含任務陣列，或使用本工具匯出的檔案。");
+  }
+
+  const importedTasks = normalizeTasks(candidateTasks);
+
+  if (candidateTasks.length > 0 && importedTasks.length === 0) {
+    throw new Error("匯入失敗：找不到可用的任務資料。");
+  }
+
+  return importedTasks;
+}
+
+function createExportFilename() {
+  const date = new Date().toISOString().slice(0, 10);
+  return `kanban-todo-list-${date}.json`;
+}
+
+function showStorageStatus(message, isError = false) {
+  storageStatus.textContent = message;
+  storageStatus.classList.toggle("error", isError);
 }
 
 function formatDate(isoString) {

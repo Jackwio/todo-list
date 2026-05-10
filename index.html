@@ -31,6 +31,15 @@
           <button type="submit" class="primary-btn">新增任務</button>
           <button type="button" class="ghost-btn" id="clear-storage">清除全部資料</button>
         </div>
+
+        <div class="storage-tools" aria-label="資料匯入匯出工具">
+          <button type="button" class="ghost-btn" id="export-storage">匯出 JSON</button>
+          <label class="file-import">
+            <span>匯入 JSON</span>
+            <input id="import-storage" type="file" accept="application/json,.json">
+          </label>
+        </div>
+        <p class="storage-status" id="storage-status" role="status" aria-live="polite"></p>
       </form>
     </section>
 

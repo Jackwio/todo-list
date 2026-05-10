@@ -148,14 +148,16 @@ textarea {
 
 .primary-btn,
 .ghost-btn,
-.icon-btn {
+.icon-btn,
+.file-import {
   cursor: pointer;
   transition: transform 140ms ease, opacity 140ms ease, background 140ms ease;
 }
 
 .primary-btn:hover,
 .ghost-btn:hover,
-.icon-btn:hover {
+.icon-btn:hover,
+.file-import:hover {
   transform: translateY(-1px);
 }
 
@@ -173,6 +175,49 @@ textarea {
   background: rgba(32, 39, 32, 0.08);
   color: var(--text);
   font-weight: 700;
+}
+
+.storage-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.file-import {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: rgba(47, 111, 237, 0.1);
+  color: var(--doing);
+  font-weight: 700;
+  overflow: hidden;
+}
+
+.file-import input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.storage-status {
+  min-height: 1.45em;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.storage-status.error {
+  color: #9d2020;
 }
 
 .board {
